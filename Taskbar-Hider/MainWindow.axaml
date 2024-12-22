@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="180"
         x:Class="Taskbar_Hider.MainWindow"
-        Icon="avares://Taskbar-Hider/Assets/appLogo.ico"
+        Icon="Assets/appLogo.ico"
         Title="Taskbar Hider"
         Width="400" Height="180"
         MinWidth="400" MinHeight="170"
