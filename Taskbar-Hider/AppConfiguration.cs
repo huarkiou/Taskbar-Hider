@@ -23,8 +23,7 @@ internal partial class ConfigurationContext : JsonSerializerContext;
 
 internal class AppConfiguration
 {
-    private static readonly string ConfigPath =
-        Path.GetDirectoryName(Environment.ProcessPath) + "/" + App.ProgramName + ".json";
+    private static readonly string ConfigPath = Path.Combine(AppContext.BaseDirectory, "config.json");
 
     public Configuration Config = new();
 
