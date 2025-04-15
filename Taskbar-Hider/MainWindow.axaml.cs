@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -20,7 +19,7 @@ public partial class MainWindow : Window
     private readonly HWND _hWnd; // MainWindow句柄 不为HWND.Null
     private bool _showFirstTime = true;
 
-    private readonly ImmutableDictionary<uint, string> _vKeys;
+    private readonly Dictionary<uint, string> _vKeys;
     private readonly Dictionary<uint, string> _modifiers;
 
     public MainWindow()
@@ -45,9 +44,8 @@ public partial class MainWindow : Window
         _autorun = new AutoRun(App.ProgramName);
         AutoRunToggleSwitch.IsChecked = _autorun.RunOnBoot;
 
-        _vKeys = Enum.GetValues<VIRTUAL_KEY>()
-            .ToImmutableDictionary(m => (uint)m,
-                m => Enum.GetName(m)![3..].Replace("_", " ").Trim());
+        _vKeys = Enum.GetValues<VIRTUAL_KEY>().Distinct()
+            .ToDictionary(m => (uint)m, m => Enum.GetName(m)![3..].Replace("_", " ").Trim());
 
         VirtualKeyComboBox.ItemsSource = _vKeys.Values;
         VirtualKeyComboBox.SelectedValue = _vKeys[AppConfiguration.Instance.Config.VKey];
@@ -74,8 +72,6 @@ public partial class MainWindow : Window
             }
 
             sb.Remove(sb.Length - 1, 1);
-
-            // Console.WriteLine("{0}\t{1}", id, sb);
             _modifiers.Add(id, sb.ToString());
         }
 
