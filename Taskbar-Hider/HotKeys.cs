@@ -23,7 +23,7 @@ public class HotKeys
     internal void Register(HWND hWnd, HOT_KEY_MODIFIERS modifiers, VIRTUAL_KEY vk,
         HotKeyCallBackHandler callBack)
     {
-        int id = PInvoke.GlobalAddAtom("Taskbar-Hider");
+        int id = PInvoke.GlobalAddAtom(App.ProgramName);
         if (!PInvoke.RegisterHotKey(hWnd, id, modifiers, (uint)vk))
             throw new Exception("全局快捷键注册失败：快捷键冲突!");
         _globalAtomMap[id] = callBack;
@@ -36,7 +36,7 @@ public class HotKeys
     /// <param name="callBack">回调函数</param>
     internal void Unregister(HWND hWnd, HotKeyCallBackHandler callBack)
     {
-        foreach (var (id, _) in _globalAtomMap.Where(pair => pair.Value == callBack))
+        foreach ((int id, _) in _globalAtomMap.Where(pair => pair.Value == callBack))
         {
             PInvoke.UnregisterHotKey(hWnd, id);
             PInvoke.GlobalDeleteAtom((ushort)id);
