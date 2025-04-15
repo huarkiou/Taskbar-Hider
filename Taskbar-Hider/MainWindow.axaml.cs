@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Avalonia.Controls;
@@ -17,8 +20,8 @@ public partial class MainWindow : Window
     private readonly HWND _hWnd; // MainWindow句柄 不为HWND.Null
     private bool _showFirstTime = true;
 
-    private readonly ImmutableSortedDictionary<uint, string> _vKeys;
-    private readonly ImmutableSortedDictionary<uint, string> _modifiers;
+    private readonly ImmutableDictionary<uint, string> _vKeys;
+    private readonly Dictionary<uint, string> _modifiers;
 
     public MainWindow()
     {
@@ -43,13 +46,39 @@ public partial class MainWindow : Window
         AutoRunToggleSwitch.IsChecked = _autorun.RunOnBoot;
 
         _vKeys = Enum.GetValues<VIRTUAL_KEY>()
-            .ToImmutableSortedDictionary(m => (uint)m, m => Enum.GetName(m)![3..]);
+            .ToImmutableDictionary(m => (uint)m,
+                m => Enum.GetName(m)![3..].Replace("_", " ").Trim());
 
         VirtualKeyComboBox.ItemsSource = _vKeys.Values;
         VirtualKeyComboBox.SelectedValue = _vKeys[AppConfiguration.Instance.Config.VKey];
 
-        _modifiers = Enum.GetValues<HOT_KEY_MODIFIERS>()
-            .ToImmutableSortedDictionary(m => (uint)m, m => Enum.GetName(m)![4..]);
+        var baseModifiers = Enum.GetValues<HOT_KEY_MODIFIERS>().Where(m => m != HOT_KEY_MODIFIERS.MOD_NOREPEAT)
+            .ToDictionary(m => (uint)m,
+                m => CultureInfo.CurrentCulture.TextInfo.ToTitleCase(Enum.GetName(m)![4..].Trim().ToLower())).ToArray();
+        List<KeyValuePair<uint, string>[]> combinations = [];
+        for (int i = 1; i <= baseModifiers.Length; i++)
+        {
+            combinations.AddRange(PermutationAndCombination<KeyValuePair<uint, string>>.GetCombination(
+                baseModifiers, i));
+        }
+
+        _modifiers = new Dictionary<uint, string>();
+        foreach (var kvp in combinations)
+        {
+            uint id = 0;
+            StringBuilder sb = new StringBuilder();
+            foreach (var modifier in kvp)
+            {
+                id |= modifier.Key;
+                sb.Append($"{modifier.Value}+");
+            }
+
+            sb.Remove(sb.Length - 1, 1);
+
+            // Console.WriteLine("{0}\t{1}", id, sb);
+            _modifiers.Add(id, sb.ToString());
+        }
+
         ModifierComboBox.ItemsSource = _modifiers.Values;
         ModifierComboBox.SelectedValue = _modifiers[AppConfiguration.Instance.Config.Modifiers];
     }
